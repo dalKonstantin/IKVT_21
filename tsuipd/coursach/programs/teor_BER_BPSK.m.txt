@@ -1,0 +1,12 @@
+% Вычисляем теор. функцию ошибок BPSK
+clc;
+close all;
+clear all;
+SNR_dB = -6:0.5:14;% SNR в децибеллах
+SNR = 10.^(SNR_dB/10);
+BER = erfc(sqrt(2*SNR));
+semilogy(SNR_dB,BER,'linewidth',2)
+grid on
+ylabel('BER')
+xlabel('SNR (dB)')
+title('BER BPSK')

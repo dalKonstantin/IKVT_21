@@ -1,0 +1,87 @@
+%raschet Skorosti PD po KURSOVOY TSiUPD
+pkg load signal;
+pkg load statistics;
+pkg load communications;
+pkg load symbolic;
+clc; close all; clear all;
+%
+%Идентификация студентов;
+Grupppa='IKVT_92';
+FStudikName='Vlasenko_Sergey'; % Задать фио;
+%
+%Задание параметров системы передачи;
+%Среда передачи сигналов — одномодовая ВОЛС длины волн оптич.несущих;
+lambda13=[1310 1330 1350 1370 1390 1410 1430 1450]; %nm;
+lambda15=[1550 1490 1510 1530 1570 1590 1610 1630]; %nm;
+lambda=[1310 1330 1350 1370 1390 1410 1430 1450;
+        1550 1490 1510 1530 1570 1590 1610 1630];
+%Расстояние между населенными пунктами A и B;
+LAB=11; %км;
+%Количество абонентов муниципальной сети;
+Na=8000;
+%Количество узлов доступа для абонентов;
+NNAS=26;
+%Распределение абонентов по узлам доступа ANAS  Na = ∑NNAS*ANAS;
+ANAS=[900 500 500 500 500 500 500 500 300 300 300 300 300 300 200 200 200 200 200 200 100 100 100 100 100 100];
+%Минимальный коэффициент абонентской нагрузки;
+KminA=0.2;
+%Максимальный коэффициент абонентской нагрузки;
+KmaxA=0.84;
+%Коэффициент служебного трафика;
+Ks=0.4;
+%Количество частотных полос передачи данных по одному волокну;
+PD=5;
+%Коэффициент резервирования трафика;
+Krez=1.8;
+%Количество предоставляемых волокон для передачи трафика;
+Nvol=1;
+%Мощность излучения СИД;
+PSID=5; %дБм;
+%Чувствительность фотоприемника;
+SFot=-27.7; %дБм;
+%Полоса излучения СИД; %нм
+dLamdaSID=17;
+%Строительная длина; %км
+LSTR=4.7;
+%Глубина АРУ; %дБ
+ARU=22;
+%Удельн.хром.дисперсия; %пс/(км*нм)
+HDOV=18;
+%коэфф. доступности Voip,Int&PD,VA,VoD;
+KVoip=0.25; KIntPD=0.8; KVA=0.25; KVoD=0.01;
+%МАКС скорости услуг;
+VVoip=64; VIntPD=8000; VV=1200; VA=384; VVOD=6000;
+Viptv1=1e6; Viptv2=2e6;
+%
+%-----------------Poehali
+%Расчет скорости по услугам без IPTV
+VVoipSum=Na*VVoip*KVoip*(1+Ks); %скор. Voip;
+VVIntPDSum=Na*VIntPD*KIntPD*(1+Ks); %скор. Int&PD;
+VVSum=Na*VV*KVA*(1+Ks); %скор. VV;
+VASum=Na*VA*KVA*(1+Ks); %скор. VA;
+VVoDSum=Na*VVOD*KVoD*(1+Ks); %скор. Voip;
+VUslugSum=VVoipSum+VVIntPDSum+VVSum+VASum+VVoDSum;
+VUslugSumMin=VUslugSum*KminA;
+VUslugSumMax=VUslugSum*KmaxA;
+%Расчет скорости по услуге IPTV
+VIPtvUz=[];
+for iUz=1:NNAS;
+  if ANAS(iUz)>=500;
+  VIPtvUz=[VIPtvUz (ANAS(iUz)/500)];
+  else
+  VIPtvUz=[VIPtvUz (2*ANAS(iUz)/500)];
+  endif
+end
+VIPTVSum=ceil(sum(VIPtvUz));
+VVSumUslugmin=VIPTVSum+ceil(VUslugSumMin/1e6);
+VVSumUslugmax=VIPTVSum+ceil(VUslugSumMax/1e6);
+%Сумм.скорость по всем услугам с резервированием
+VVSumUslugminRez=ceil(Krez*VVSumUslugmin);
+VVSumUslugmaxRez=ceil(Krez*VVSumUslugmax);
+%Канальная скорость передачи
+Vkanmin=ceil(VVSumUslugminRez/(PD*Nvol));
+Vkanmax=ceil(VVSumUslugmaxRez/(PD*Nvol));
+
+%
+%расчет 
+%КОНЕЦ
